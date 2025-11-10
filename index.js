@@ -6,8 +6,6 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-
-
 const serviceAccount = require("./serviceKey.json");
 
 admin.initializeApp({
@@ -87,10 +85,27 @@ async function run() {
     });
 
     // posting a new vehicle
-    app.post('/allVehicles', async(req, res) => {
+    app.post('/allVehicles', verifyFirebaseToken, async(req, res) => {
       const newVehicle = req.body;
       const result = await vehiclesCollection.insertOne(newVehicle);
       res.send(result);
+    })
+
+    // my vehicles API
+    app.get('/myVehicles', verifyFirebaseToken, async(req, res) => {
+       const email = req.query.email;
+       console.log("email", email);
+       
+       const query = {};
+       if(email){
+        if(req.token_email !== email){
+          return res.status(403).send({message: "Forbidden access"});
+        }
+       
+        query.vehicle_owner_email= email;
+       }
+       const result = await vehiclesCollection.find(query).toArray();
+       res.send(result);
     })
 
     // Send a ping to confirm a successful connection
@@ -106,9 +121,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Travel Ease server is running");
+  res.send("LuxTrip server is running");
 });
 
 app.listen(port, () => {
-  console.log(`Travel ease server is running on port: ${port}`);
+  console.log(`LuxTrip server is running on port: ${port}`);
 });
