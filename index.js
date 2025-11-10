@@ -90,14 +90,36 @@ async function run() {
       res.send(result);
     });
 
-    // deleting a vehicle
-    app.delete('/allVehicles/:id', async(req, res) => {
+    // updating a vehicle
+    app.patch("/allVehicles/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const updatedVehicle = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          vehicle_name: updatedVehicle.vehicle_name,
+          owner: updatedVehicle.owner,
+          category: updatedVehicle.category,
+          price_per_day: updatedVehicle.price_per_day,
+          location: updatedVehicle.location,
+          availability: updatedVehicle.availability,
+          description: updatedVehicle.description,
+          image: updatedVehicle.image,
+          vehicle_owner_email: updatedVehicle.vehicle_owner_email,
+          categories: updatedVehicle.categories
+        },
+      };
+      const result = await vehiclesCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    // deleting a vehicle
+    app.delete("/allVehicles/:id", verifyFirebaseToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       const result = await vehiclesCollection.deleteOne(query);
       res.send(result);
-
-    })
+    });
 
     // my vehicles API
     app.get("/myVehicles", verifyFirebaseToken, async (req, res) => {
