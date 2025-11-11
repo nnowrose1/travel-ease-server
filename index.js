@@ -31,7 +31,7 @@ const verifyFirebaseToken = async (req, res, next) => {
   // verify the token
   try {
     const decoded = await admin.auth().verifyIdToken(token);
-    console.log("After token validation", decoded);
+    // console.log("After token validation", decoded);
     req.token_email = decoded.email;
     next();
   } catch {
@@ -91,7 +91,7 @@ async function run() {
     });
 
     // updating a vehicle
-    app.patch("/allVehicles/:id", async (req, res) => {
+    app.patch("/allVehicles/:id", verifyFirebaseToken, async (req, res) => {
       const id = req.params.id;
       const updatedVehicle = req.body;
       const query = { _id: new ObjectId(id) };
