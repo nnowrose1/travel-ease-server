@@ -57,6 +57,7 @@ async function run() {
     await client.connect();
     const vehiclesdb = client.db("vehiclesDB");
     const vehiclesCollection = vehiclesdb.collection("vehicles");
+    const myBookingCollection = vehiclesdb.collection("myBookings");
 
     // getting all the vehicles
     app.get("/allVehicles", async (req, res) => {
@@ -106,7 +107,7 @@ async function run() {
           description: updatedVehicle.description,
           image: updatedVehicle.image,
           vehicle_owner_email: updatedVehicle.vehicle_owner_email,
-          categories: updatedVehicle.categories
+          categories: updatedVehicle.categories,
         },
       };
       const result = await vehiclesCollection.updateOne(query, update);
@@ -134,6 +135,13 @@ async function run() {
         query.vehicle_owner_email = email;
       }
       const result = await vehiclesCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // posting my booking vehicles API
+    app.post("/myBookings", async (req, res) => {
+      const newBooking = req.body;
+      const result = await myBookingCollection.insertOne(newBooking);
       res.send(result);
     });
 
