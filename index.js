@@ -138,12 +138,29 @@ async function run() {
       res.send(result);
     });
 
+    // getting my booking vehicles API
+    app.get("/myBookings",verifyFirebaseToken, async (req, res) => {
+      const email=req.query.email;
+      if(email){
+         if (req.token_email !== email) {
+          return res.status(403).send({ message: "Forbidden access" });
+        }
+
+        query.vehicle_owner_email = email;
+      }
+      const result = await myBookingCollection.find(query).toArray();
+      res.send(result);
+      
+    })
+
     // posting my booking vehicles API
     app.post("/myBookings", async (req, res) => {
       const newBooking = req.body;
       const result = await myBookingCollection.insertOne(newBooking);
       res.send(result);
     });
+
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
