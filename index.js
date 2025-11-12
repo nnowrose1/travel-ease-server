@@ -67,7 +67,7 @@ async function run() {
     });
 
     // getting a particular vehicle
-    app.get("/allVehicles/:id", verifyFirebaseToken, async (req, res) => {
+    app.get("/allVehicles/:id",  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await vehiclesCollection.findOne(query);
@@ -87,6 +87,7 @@ async function run() {
     // posting a new vehicle
     app.post("/allVehicles", verifyFirebaseToken, async (req, res) => {
       const newVehicle = req.body;
+      newVehicle.createdAt= new Date();
       const result = await vehiclesCollection.insertOne(newVehicle);
       res.send(result);
     });
@@ -115,7 +116,7 @@ async function run() {
     });
 
     // deleting a vehicle
-    app.delete("/allVehicles/:id", verifyFirebaseToken, async (req, res) => {
+    app.delete("/allVehicles/:id",verifyFirebaseToken,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await vehiclesCollection.deleteOne(query);
@@ -139,14 +140,15 @@ async function run() {
     });
 
     // getting my booking vehicles API
-    app.get("/myBookings",verifyFirebaseToken, async (req, res) => {
+    app.get("/myBookings",  async (req, res) => {
       const email=req.query.email;
+      const query = {};
       if(email){
-         if (req.token_email !== email) {
-          return res.status(403).send({ message: "Forbidden access" });
-        }
+        //  if (req.token_email !== email) {
+        //   return res.status(403).send({ message: "Forbidden access" });
+        // }
 
-        query.vehicle_owner_email = email;
+        query.booked_by = email;
       }
       const result = await myBookingCollection.find(query).toArray();
       res.send(result);
@@ -154,7 +156,7 @@ async function run() {
     })
 
     // posting my booking vehicles API
-    app.post("/myBookings", async (req, res) => {
+    app.post("/myBookings",  async (req, res) => {
       const newBooking = req.body;
       const result = await myBookingCollection.insertOne(newBooking);
       res.send(result);
