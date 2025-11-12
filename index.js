@@ -127,6 +127,24 @@ async function run() {
       res.send(result);
     });
 
+    // sorting by price
+    app.get('/vehicles/sort', async(req, res) => {
+      const sort = req.query.sort;
+      // console.log(req.query.sort);
+      
+      const sortOption = {};
+
+      if(sort === "priceAsc") {
+        sortOption.price_per_day = 1;
+      }
+      else if(sort === "priceDesc"){
+        sortOption.price_per_day = -1;
+      }
+
+      const result = await vehiclesCollection.find().sort(sortOption).toArray();
+      res.send(result);
+    })
+
     // my vehicles API
     app.get("/myVehicles", async (req, res) => {
       const email = req.query.email;
