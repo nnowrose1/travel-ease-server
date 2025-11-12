@@ -1,46 +1,48 @@
 const express = require("express");
-const admin = require("firebase-admin");
+// const admin = require("firebase-admin");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// index.js
-const decoded = Buffer.from(process.env.FIREBASE_SERVICE_KEY, "base64").toString("utf8");
-const serviceAccount = JSON.parse(decoded);
+// // index.js
+// const decoded = Buffer.from(process.env.FIREBASE_SERVICE_KEY, "base64").toString("utf8");
+// const serviceAccount = JSON.parse(decoded);
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// const serviceAccount = require("./serviceKey.json")
+
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 // middlewares
 app.use(cors());
 app.use(express.json());
 
-const verifyFirebaseToken = async (req, res, next) => {
-  // console.log("In the verify middleware", req.headers.authorization);
-  // verify if there is headers there
-  const authorization = req.headers.authorization;
-  if (!authorization) {
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-  const token = authorization.split(" ")[1];
-  // verify if token is there
-  if (!token) {
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-  // verify the token
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    // console.log("After token validation", decoded);
-    req.token_email = decoded.email;
-    next();
-  } catch {
-    console.log("Invalid token");
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-};
+// const verifyFirebaseToken = async (req, res, next) => {
+//   // console.log("In the verify middleware", req.headers.authorization);
+//   // verify if there is headers there
+//   const authorization = req.headers.authorization;
+//   if (!authorization) {
+//     return res.status(401).send({ message: "Unauthorized Access" });
+//   }
+//   const token = authorization.split(" ")[1];
+//   // verify if token is there
+//   if (!token) {
+//     return res.status(401).send({ message: "Unauthorized Access" });
+//   }
+//   // verify the token
+//   try {
+//     const decoded = await admin.auth().verifyIdToken(token);
+//     // console.log("After token validation", decoded);
+//     req.token_email = decoded.email;
+//     next();
+//   } catch {
+//     console.log("Invalid token");
+//     return res.status(401).send({ message: "Unauthorized Access" });
+//   }
+// };
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.fawnknm.mongodb.net/?appName=Cluster0`;
 
@@ -56,7 +58,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const vehiclesdb = client.db("vehiclesDB");
     const vehiclesCollection = vehiclesdb.collection("vehicles");
     const myBookingCollection = vehiclesdb.collection("myBookings");
@@ -69,7 +71,7 @@ async function run() {
     });
 
     // getting a particular vehicle
-    app.get("/allVehicles/:id",  async (req, res) => {
+    app.get("/allVehicles/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await vehiclesCollection.findOne(query);
@@ -87,15 +89,15 @@ async function run() {
     });
 
     // posting a new vehicle
-    app.post("/allVehicles", verifyFirebaseToken, async (req, res) => {
+    app.post("/allVehicles", async (req, res) => {
       const newVehicle = req.body;
-      newVehicle.createdAt= new Date();
+      newVehicle.createdAt = new Date();
       const result = await vehiclesCollection.insertOne(newVehicle);
       res.send(result);
     });
 
     // updating a vehicle
-    app.patch("/allVehicles/:id", verifyFirebaseToken, async (req, res) => {
+    app.patch("/allVehicles/:id", async (req, res) => {
       const id = req.params.id;
       const updatedVehicle = req.body;
       const query = { _id: new ObjectId(id) };
@@ -118,7 +120,7 @@ async function run() {
     });
 
     // deleting a vehicle
-    app.delete("/allVehicles/:id",verifyFirebaseToken,  async (req, res) => {
+    app.delete("/allVehicles/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await vehiclesCollection.deleteOne(query);
@@ -126,14 +128,14 @@ async function run() {
     });
 
     // my vehicles API
-    app.get("/myVehicles", verifyFirebaseToken, async (req, res) => {
+    app.get("/myVehicles", async (req, res) => {
       const email = req.query.email;
 
       const query = {};
       if (email) {
-        if (req.token_email !== email) {
-          return res.status(403).send({ message: "Forbidden access" });
-        }
+        // if (req.token_email !== email) {
+        //   return res.status(403).send({ message: "Forbidden access" });
+        // }
 
         query.vehicle_owner_email = email;
       }
@@ -142,10 +144,10 @@ async function run() {
     });
 
     // getting my booking vehicles API
-    app.get("/myBookings",  async (req, res) => {
-      const email=req.query.email;
+    app.get("/myBookings", async (req, res) => {
+      const email = req.query.email;
       const query = {};
-      if(email){
+      if (email) {
         //  if (req.token_email !== email) {
         //   return res.status(403).send({ message: "Forbidden access" });
         // }
@@ -154,17 +156,14 @@ async function run() {
       }
       const result = await myBookingCollection.find(query).toArray();
       res.send(result);
-      
-    })
+    });
 
     // posting my booking vehicles API
-    app.post("/myBookings",  async (req, res) => {
+    app.post("/myBookings", async (req, res) => {
       const newBooking = req.body;
       const result = await myBookingCollection.insertOne(newBooking);
       res.send(result);
     });
-
-    
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
